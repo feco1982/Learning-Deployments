@@ -1,4 +1,4 @@
-name: Fake Deployment
+name: Deploy to Jira
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -15,5 +16,39 @@ jobs:
       - name: Fake deploy
         run: echo "Deploying... (this is just a test)"
 
-      - name: Notify Jira (placeholder)
-        run: echo "This is where Jira deployment event will go"
+      - name: Send deployment info to Jira
+        run: |
+          curl -X POST \
+            -H "Authorization: Basic $(echo -n ${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }} | base64)" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "deployments": [
+                {
+                  "schemaVersion": "1.0",
+                  "deploymentSequenceNumber": 1,
+                  "updateSequenceNumber": 1,
+                  "displayName": "Fake Deployment",
+                  "url": "https://github.com/${{ github.repository }}/actions",
+                  "description": "Learning deployment integration",
+                  "lastUpdated": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'",
+                  "state": "successful",
+                  "pipeline": {
+                    "id": "learning-pipeline",
+                    "displayName": "Learning Pipeline",
+                    "url": "https://github.com/${{ github.repository }}/actions"
+                  },
+                  "environment": {
+                    "id": "dev",
+                    "displayName": "Development",
+                    "type": "development"
+                  },
+                  "associations": [
+                    {
+                      "associationType": "issueIdOrKeys",
+                      "values": ["SCRUM-1"]
+                    }
+                  ]
+                }
+              ]
+            }' \
+            "${{ secrets.JIRA_SITE }}/rest/deployments/0.1/bulk"
