@@ -1,0 +1,19 @@
+name: Fake Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Fake deploy
+        run: echo "Deploying... (this is just a test)"
+
+      - name: Notify Jira (placeholder)
+        run: echo "This is where Jira deployment event will go"
